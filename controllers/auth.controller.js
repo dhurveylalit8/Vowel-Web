@@ -9,11 +9,6 @@
 *      1. Registers and is approved by default
 *      2. Should be able to login immediately
 * 
-* Engineer 
-*      1. Should be able to register 
-*      2. Initially he/she will be in PENDING state
-*      3. ADMIN should be able to approve this
-* 
 * Admin
 *      1. ADMIN user should be only created from the backend...No API 
 *      should be supported for it
@@ -71,7 +66,7 @@ exports.signup = async (req, res) => {
            //  createdAt : userCreated.createdAt,
            //  updatedAt : userCreated.updatedAt
         }
-        console.log(res)
+        console.log(response)
         res.status(201).send(response);
     }catch(err){
         console.log("Some error happened ", err.message);
@@ -90,57 +85,58 @@ exports.signin = async (req, res) => {
      * If the userId passed is correct
      */
     try{
-    const user = await User.findOne({userId : req.body.userId});
-    if(user == null){
-        return res.status(400).send({
-            message : "Failed ! userId passed doesn't exist"
-        });
-    }
 
-    /**
-     * Check if the user is in PENDING state
-    */
-    if(user.userStatus == constants.userStatus.pending){
-        return res.status(400).send({
-            message : "Not yet approved from the admin"
+        const user = await User.findOne({userId : req.body.userId});
+        if(user == null){
+            return res.status(400).send({
+                message : "Failed ! userId passed doesn't exist"
+            });
+        }
+
+        /**
+         * Check if the user is in PENDING state
+        */
+        if(user.userStatus == constants.userStatus.pending){
+            return res.status(400).send({
+                message : "Not yet approved from the admin"
+            })
+        }
+
+        /**
+         * If the password passed is correct
+         */
+        const passwordIsvalid = bcrypt.compareSync(req.body.password, user.password)
+
+        if(!passwordIsvalid){
+            return res.status(401).send({
+                message : "Wrong password"
+            });
+        }
+
+        /**
+         * Create the JWT token
+         */
+        const token = jwt.sign({
+            id : user.userId
+        }, authConfig.secret, {
+            expiresIn : 600
+        });
+
+        /**
+         * Send the successful login response
+         */
+        res.status(200).send({
+            name : user.name,
+            userId : user.userId,
+            email : user.email,
+            userType : user.userType,
+            userStatus : user.userStatus,
+            accessToken :  token
+        });
+    }catch(err){
+        console.log("Internal error, " , err.message);
+        res.status(500).send({
+            message : "Some internal error while signin"
         })
-    }
-
-    /**
-     * If the password passed is correct
-     */
-    const passwordIsvalid = bcrypt.compareSync(req.body.password, user.password)
-
-    if(!passwordIsvalid){
-        return res.status(401).send({
-            message : "Wrong password"
-        });
-    }
-
-    /**
-     * Create the JWT token
-     */
-    const token = jwt.sign({
-        id : user.userId
-    }, authConfig.secret, {
-        expiresIn : 600
-    });
-
-    /**
-     * Send the successful login response
-     */
-    res.status(200).send({
-        name : user.name,
-        userId : user.userId,
-        email : user.email,
-        userType : user.userType,
-        userStatus : user.userStatus,
-        accessToken :  token
-    });
-}catch(err){
-    console.log("Internal error, " , err.message);
-    res.status(500).send({
-        message : "Some internal error while signin"
-    })
-}
+    }   
 }

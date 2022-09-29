@@ -59,7 +59,7 @@ async function init(){
         })
 
         console.log(user);
-    } catch (err) {
+    }catch (err){
         console.log("err in db initialization", err.message)
     }
 }

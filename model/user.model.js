@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
         required : true,
         default : constants.userStatus.approved,
         enum : [constants.userStatus.approved, constants.userStatus.pending, constants.userStatus.rejected]
-    },
+    }
 },{
     timestamps : true,
     versionKey : false
