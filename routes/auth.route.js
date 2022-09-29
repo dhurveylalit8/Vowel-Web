@@ -10,7 +10,7 @@ module.exports = (app) => {
      * POST /crm/api/v1/auth/signup
      */
 
-    app.post("/ww/api/v1/auth/signup",[verifySignup.validateSignInRequestBody], authController.signup);
+    app.post("/ww/api/v1/auth/signup",[verifySignup.validateSignUpRequestBody], authController.signup);
 
     /**
      * Login
